@@ -248,25 +248,19 @@ h2{
             <button onclick="window.print()">🖨 Imprimir</button>
         </div>
 
-        <div class="topo">
-            <div><b>ENNA</b></div>
-            <div>Empresa de Navegação Aérea<br>Luanda - Angola</div>
-        </div>
+   
 
         <h2 style="text-align:center;">DECLARAÇÃO DE SERVIÇO</h2>
 
         <p>
-        Declara-se que <b>${pedido.nome || "N/A"}</b>, BI nº <b>${pedido.bi || "N/A"}</b>,
-        encontra-se vinculado(a) a esta instituição.
-        </p>
+A pedido do interessado e para efeitos de apresentação em <b>${pedido.destino || "N/A"}</b>, 
+declara-se que o Sr. <b>${pedido.nome || "N/A"}</b>, portador do Bilhete de Identidade nº 
+<b>${pedido.bi || "N/A"}</b>, é trabalhador desta instituição, exercendo a função de 
+<b>${pedido.funcao || "N/A"}</b>, com contrato por tempo indeterminado desde 
+<b>${pedido.dataAdmissao || "N/A"}</b>, auferindo um salário mensal de 
+<b>${salario} Kz</b> (${extenso}), encontrando-se em efetivo serviço.
+</p>
 
-        <p>
-        Aufere salário mensal de <b>${salario} Kz</b> (${extenso}).
-        </p>
-
-        <p>
-        A presente declaração é emitida para os fins que se julgar conveniente.
-        </p>
 
         <p>
         ${assinatura.cabecalho} ${new Date().toLocaleDateString()}
@@ -320,9 +314,13 @@ app.post("/upload/:id", upload.single("file"), (req, res) => {
     res.json({ message: "Upload feito" });
 });
 
+app.get("/", (req, res) => {
+    res.send("Sistema RH online 🚀");
+});
+
 /* ========================
    START
 ======================== */
-app.listen(3000, () => {
-    console.log("Servidor rodando em http://localhost:3000");
+app.listen(PORT, () => {
+    console.log("Servidor rodando na porta " + PORT);
 });
