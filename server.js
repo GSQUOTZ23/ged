@@ -27,8 +27,42 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage });
-
 app.use("/uploads", express.static("uploads"));
+
+/* ========================
+   FUNÇÃO ASSINATURA (🔥 PROFISSIONAL)
+======================== */
+function getAssinatura(tipo){
+    if(tipo === "Director"){
+        return {
+            nome: "Carlos Manuel Vieira",
+            cargo: "Director",
+            cabecalho: "Direcção de RH, em Luanda,"
+        };
+    }
+
+    if(tipo === "Chefe Divisão A"){
+        return {
+            nome: "Ana Paula Domingos",
+            cargo: "Chefe de Divisão",
+            cabecalho: "Divisão de Gestão da Direcção de RH, em Luanda,"
+        };
+    }
+
+    if(tipo === "Chefe Divisão B"){
+        return {
+            nome: "José Eduardo Neto",
+            cargo: "Chefe de Divisão",
+            cabecalho: "Divisão de Gestão da Direcção de RH, em Luanda,"
+        };
+    }
+
+    return {
+        nome: "Responsável",
+        cargo: "",
+        cabecalho: "Direcção de RH, em Luanda,"
+    };
+}
 
 /* ========================
    DADOS
@@ -122,8 +156,9 @@ app.put("/pedido/:id", (req, res) => {
     if(req.body.status === "Aprovado"){
         pedido.salario = req.body.salario;
         pedido.salarioExtenso = req.body.salarioExtenso;
+        pedido.assinante = req.body.assinante;
 
-        pedido.documento = `http://localhost:3000/gerar-doc/${pedido.id}?salario=${req.body.salario}&extenso=${req.body.salarioExtenso}`;
+        pedido.documento = `http://localhost:3000/gerar-doc/${pedido.id}?salario=${req.body.salario}&extenso=${req.body.salarioExtenso}&assinante=${req.body.assinante}`;
     }
 
     res.json(pedido);
@@ -142,150 +177,126 @@ app.get("/gerar-doc/:id", (req, res) => {
 
     const salario = req.query.salario || "N/A";
     const extenso = req.query.extenso || "N/A";
+    const assinanteTipo = req.query.assinante || "Responsável";
+
+    const assinatura = getAssinatura(assinanteTipo);
 
     res.send(`
     <html>
     <head>
         <title>Declaração</title>
-
         <style>
-            body{
-                font-family: Arial;
-                padding: 60px;
-                background: white;
-            }
+body{
+    font-family: Arial;
+    padding:60px;
+    max-width:800px;
+    margin:auto;
+}
 
-            .topo{
-                display:flex;
-                align-items:center;
-                justify-content:space-between;
-            }
+/* TEXTO PRINCIPAL */
+p{
+    font-size:16px;
+    line-height:1.8;
+    text-align: justify;
+    margin-bottom:15px;
+}
 
-            .logo{
-                font-size:28px;
-                font-weight:bold;
-            }
+/* TOPO */
+.topo{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:20px;
+}
 
-            .empresa{
-                font-size:14px;
-                text-align:right;
-            }
+/* TÍTULO */
+h2{
+    text-align:center;
+    margin:30px 0;
+    letter-spacing:1px;
+}
 
-            h2{
-                text-align:center;
-                margin-top:40px;
-                margin-bottom:30px;
-            }
+/* ASSINATURA */
+.assinatura{
+    margin-top:80px;
+    text-align:center;
+}
 
-            p{
-                font-size:16px;
-                line-height:1.6;
-                text-align:justify;
-            }
+/* BOTÕES */
+.botoes{
+    position:fixed;
+    top:10px;
+    left:10px;
+}
 
-            .assinatura{
-                margin-top:80px;
-                text-align:center;
-            }
+/* IMPRESSÃO */
+@media print {
+    .botoes{
+        display:none;
+    }
 
-            .botoes{
-                position:fixed;
-                top:10px;
-                left:10px;
-            }
-
-            button{
-                margin-right:10px;
-                padding:6px 10px;
-                cursor:pointer;
-            }
-
-            @media print {
-                .botoes{
-                    display:none;
-                }
-            }
-        </style>
+    body{
+        padding:40px;
+    }
+}
+</style>
     </head>
 
     <body>
 
-        <!-- BOTÕES -->
         <div class="botoes">
             <button onclick="window.history.back()">⬅ Voltar</button>
             <button onclick="window.print()">🖨 Imprimir</button>
         </div>
 
-        <!-- TOPO -->
         <div class="topo">
-            <div class="logo">ENN</div>
-
-            <div class="empresa">
-                Engenharia e Construção Civil<br>
-                Luanda - Angola<br>
-                Tel: 900000000
-            </div>
+            <div><b>ENNA</b></div>
+            <div>Empresa de Navegação Aérea<br>Luanda - Angola</div>
         </div>
 
-        <!-- TÍTULO -->
-        <h2>DECLARAÇÃO DE SERVIÇO</h2>
+        <h2 style="text-align:center;">DECLARAÇÃO DE SERVIÇO</h2>
 
-        <!-- TEXTO -->
         <p>
-        Para devido efeito, declara-se que o Sr(a). <b>${pedido.nome || "N/A"}</b>,
-        portador(a) do BI nº <b>${pedido.bi || "N/A"}</b>, encontra-se vinculado(a)
-        a esta instituição.
+        Declara-se que <b>${pedido.nome || "N/A"}</b>, BI nº <b>${pedido.bi || "N/A"}</b>,
+        encontra-se vinculado(a) a esta instituição.
         </p>
 
         <p>
-        O mesmo exerce funções nesta organização e aufere um salário mensal de
-        <b>${salario} Kz</b> (${extenso}).
+        Aufere salário mensal de <b>${salario} Kz</b> (${extenso}).
         </p>
 
         <p>
         A presente declaração é emitida para os fins que se julgar conveniente.
         </p>
 
-        <!-- DATA -->
-        <p style="margin-top:40px;">
-        Luanda, ${new Date().toLocaleDateString()}
+        <p>
+        ${assinatura.cabecalho} ${new Date().toLocaleDateString()}
         </p>
 
-        <!-- ASSINATURA -->
-        <div class="assinatura">
-            __________________________<br>
-            Assinatura e Carimbo
-        </div>
+     <div class="assinatura">
+    <b>${assinatura.cargo}</b><br><br>
+    __________________________<br>
+    <b>${assinatura.nome}</b>
+</div>
 
         <hr>
 
-        <!-- UPLOAD -->
         <h3>Upload Documento Assinado</h3>
-
-        <input type="file" id="file">
-        <br><br>
-
+        <input type="file" id="file"><br><br>
         <button onclick="upload(${pedido.id})">Enviar Documento</button>
 
         <script>
-            async function upload(id){
-                const file = document.getElementById("file").files[0];
+        async function upload(id){
+            const file = document.getElementById("file").files[0];
+            const formData = new FormData();
+            formData.append("file", file);
 
-                if(!file){
-                    alert("Selecione um arquivo");
-                    return;
-                }
+            await fetch("/upload/" + id, {
+                method: "POST",
+                body: formData
+            });
 
-                const formData = new FormData();
-                formData.append("file", file);
-
-                await fetch("/upload/" + id, {
-                    method: "POST",
-                    body: formData
-                });
-
-                alert("Documento assinado enviado!");
-            }
+            alert("Documento enviado!");
+        }
         </script>
 
     </body>
