@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<title>Admin - RH</title>
+
+<style>
+*{margin:0;padding:0;font-family:'Lucida Sans', sans-serif;}
+header{
+    background-image: linear-gradient(#00000080, rgba(0,0,0,0.5)), url("image.jpg");
+    height:100vh;
+    background-size:cover;
+}
+.dashboard{display:flex;height:85vh;margin:50px;gap:20px;}
+.lista{width:35%;background:rgba(255,255,255,0.1);padding:15px;border-radius:10px;overflow-y:auto;}
+.item{padding:12px;margin-bottom:10px;background:rgba(255,255,255,0.2);cursor:pointer;border-radius:6px;color:white;}
+.item:hover{background:orangered;}
+.active{background:orangered;}
+.detalhe{width:65%;background:rgba(255,255,255,0.1);padding:20px;border-radius:10px;color:white;}
+input{width:100%;padding:10px;margin-top:10px;border-radius:5px;border:none;}
+.btn{margin-top:10px;padding:8px 12px;border:none;background:orangered;color:white;cursor:pointer;border-radius:5px;}
+.btn:hover{background:white;color:orangered;}
+.logout{
+    position:absolute;
+    top:20px;
+    right:20px;
+    cursor:pointer;
+    color:white;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<div id="resumo" style="color:white; margin:20px;"></div>
+<div class="logout" onclick="logout()">Sair</div>
+
+<div class="dashboard">
+    <div class="lista" id="lista"></div>
+    <div class="detalhe" id="detalhe">
+        <h2>Selecione um pedido</h2>
+    </div>
+</div>
+
+</header>
+
+<script>
+
+// 🔐 PROTEÇÃO
+const user = JSON.parse(localStorage.getItem("user"));
+
+if(!user || user.role !== "staff"){
+    window.location.href = "index.html";
+}
+
+// 🚪 LOGOUT
+function logout(){
+    localStorage.removeItem("user");
+    window.location.href = "index.html";
+}
+
+let pedidosGlobal = [];
+let selecionadoId = null;
+
+// 📥 CARREGAR PEDIDOS
+async function carregar(){
+    try{
+        const res = await fetch("http://localhost:3000/pedidos");
+        const data = await res.json();
+
+        pedidosGlobal = data;
+
+        document.getElementById("lista").innerHTML = data.map(p => `
+            <div class="item ${p.id === selecionadoId ? "active" : ""}" onclick="ver(${p.id})">
+                <b>${p.tipo}</b><br>
+                ${p.userEmail}<br>
+                <small>${p.status}</small>
+            </div>
+        `).join("");
+
+    } catch(err){
+        alert("Erro ao carregar pedidos");
+        console.error(err);
+    }
+
+    function resumo(pedidos){
+    const hoje = new Date();
+
+    let dia = 0;
+    let semana = 0;
+    let mes = 0;
+
+    pedidos.forEach(p => {
+        const data = new Date(p.createdAt);
+
+        const diffDias = (hoje - data) / (1000 * 60 * 60 * 24);
+
+        if(diffDias <= 1) dia++;
+        if(diffDias <= 7) semana++;
+        if(diffDias <= 30) mes++;
+    });
+
+    document.getElementById("resumo").innerHTML = `
+        <h3>Resumo</h3>
+        <p>Hoje: ${dia}</p>
+        <p>Semana: ${semana}</p>
+        <p>Mês: ${mes}</p>
+    `;
+}
+resumo(data);
+}
+
+// 👁️ VER DETALHE
+function ver(id){
+    selecionadoId = id;
+
+    const p = pedidosGlobal.find(x => x.id === id);
+
+    if(!p){
+        alert("Pedido não encontrado");
+        return;
+    }
+
+    document.getElementById("detalhe").innerHTML = `
+        <h2>Pedido</h2>
+
+        <p><b>Tipo:</b> ${p.tipo}</p>
+        <p><b>Email:</b> ${p.userEmail}</p>
+
+        ${p.nome ? `<p><b>Nome:</b> ${p.nome}</p>` : ""}
+        ${p.mec ? `<p><b>Mec:</b> ${p.mec}</p>` : ""}
+        ${p.bi ? `<p><b>BI:</b> ${p.bi}</p>` : ""}
+        ${p.conta ? `<p><b>Conta:</b> ${p.conta}</p>` : ""}
+        ${p.banco ? `<p><b>Banco:</b> ${p.banco}</p>` : ""}
+        ${p.embaixada ? `<p><b>Embaixada:</b> ${p.embaixada}</p>` : ""}
+        ${p.tipoPassaporte ? `<p><b>Passaporte:</b> ${p.tipoPassaporte}</p>` : ""}
+        ${p.familiares ? `<p><b>Familiares:</b> ${p.familiares.join(", ")}</p>` : ""}
+
+        <hr style="margin:10px 0">
+
+        <h3>Área do RH</h3>
+
+        <input id="salario" placeholder="Salário">
+        <input id="salarioExtenso" placeholder="Salário por extenso">
+
+        <p>Status: ${p.status}</p>
+
+        <label>Assinatura:</label>
+<select id="assinante">
+    <option value="">Selecionar</option>
+    <option value="Director">Director</option>
+    <option value="Chefe Divisão A">Chefe Divisão A</option>
+    <option value="Chefe Divisão B">Chefe Divisão B</option>
+</select>
+
+        <button class="btn" onclick="aprovar(${p.id})">Aprovar</button>
+        <button class="btn" onclick="update(${p.id}, 'Rejeitado')">Rejeitar</button>
+    `;
+
+    carregar();
+}
+
+// 🔄 ATUALIZAR STATUS
+async function update(id, status){
+    try{
+        await fetch("http://localhost:3000/pedido/" + id, {
+            method:"PUT",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({ status })
+        });
+
+        carregar();
+
+    } catch(err){
+        alert("Erro ao atualizar pedido");
+        console.error(err);
+    }
+}
+
+// INICIAR
+carregar();
+
+async function aprovar(id){
+    const salario = document.getElementById("salario").value;
+    const salarioExtenso = document.getElementById("salarioExtenso").value;
+    const assinante = document.getElementById("assinante").value;
+
+if(!salario || !salarioExtenso || !assinante){
+    alert("Preencha todos os campos e selecione o assinante");
+    return;
+}
+
+    // Atualiza status
+    await fetch("http://localhost:3000/pedido/" + id, {
+        method:"PUT",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({ status: "Aprovado", salario, salarioExtenso, assinante })
+    });
+
+    // Abre documento preenchido
+    const url = `http://localhost:3000/gerar-doc/${id}?salario=${salario}&extenso=${salarioExtenso}&assinante=${assinante}`;
+window.location.href = url;
+
+    carregar();
+}
+
+</script>
+
+</body>
+</html>

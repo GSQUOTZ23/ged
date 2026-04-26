@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<title>User</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    font-family:'Lucida Sans', sans-serif;
+}
+
+header{
+    background-image: linear-gradient(#00000080, rgba(0,0,0,0.5)), url("image.jpg");
+    height: 100vh;
+    background-size: cover;
+    background-position: center;
+}
+
+.logo img{
+    float: left;
+    width: 100px;
+}
+
+ul{
+    float: right;
+    list-style: none;
+    margin-top: 30px;
+    margin-right: 60px;
+}
+
+ul li{
+    display: inline-block;
+}
+
+ul li a{
+    color: #fff;
+    padding: 5px 20px;
+    text-decoration: none;
+}
+
+ul li a:hover{
+    background: #fff;
+    color: orangered;
+}
+
+.title{
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+}
+
+.title h1{
+    color: white;
+    font-size: 60px;
+}
+
+.container{
+    position: absolute;
+    top: 55%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    
+    background: rgba(255,255,255,0.1);
+    padding: 30px;
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+    width: 350px;
+    color: white;
+    text-align: center;
+}
+
+input, select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+
+    border: 2px solid transparent;   /* 👈 força tamanho igual */
+    border-radius: 5px;
+
+    box-sizing: border-box;          /* 👈 MUITO IMPORTANTE */
+    outline: none;
+}
+
+/* foco (quando clica) */
+input:focus, select:focus {
+    border: 2px solid orangered;
+}
+.btn{
+    width: 100%;
+    padding: 10px;
+    background: orangered;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.btn:hover{
+    background: white;
+    color: orangered;
+}
+</style>
+
+</head>
+
+<body>
+
+<header>
+
+<div class="logo">
+    <img src="logo.png">
+</div>
+
+<ul>
+    <li><a href="#" onclick="logout()">Sair</a>
+</ul>
+
+<div class="title">
+    <h1></h1>
+</div>
+
+<div class="container">
+
+<div style="margin-bottom:15px;">
+    <button class="btn" onclick="mostrarNovo()">Novo Pedido</button>
+    <button class="btn" onclick="mostrarLista()">Meus Pedidos</button>
+</div>
+
+<!-- NOVO PEDIDO -->
+<div id="novoPedido">
+
+    <h2>Solicitar Documento</h2>
+
+    <select id="tipo" onchange="mostrarCampos()">
+        <option value="">Selecione</option>
+        <option value="ordenado">Ordenado</option>
+        <option value="credito">Crédito</option>
+        <option value="visto">Visto</option>
+        <option value="passaporte">Passaporte</option>
+    </select>
+
+    <div id="formulario"></div>
+
+    <button class="btn" onclick="enviar()">Enviar</button>
+
+</div>
+
+<!-- LISTA -->
+<div id="listaPedidos" style="display:none;">
+    <h3>Meus Pedidos</h3>
+    <div id="meusPedidos"></div>
+</div>
+
+</div>
+
+</header>
+
+<script>
+    const user = JSON.parse(localStorage.getItem("user"));
+
+if(!user){
+    window.location.href = "index.html";
+}
+
+
+
+function mostrarNovo(){
+    document.getElementById("novoPedido").style.display = "block";
+    document.getElementById("listaPedidos").style.display = "none";
+}
+
+function mostrarLista(){
+    document.getElementById("novoPedido").style.display = "none";
+    document.getElementById("listaPedidos").style.display = "block";
+}
+
+function mostrarCampos(){
+    const tipo = document.getElementById("tipo").value;
+    const form = document.getElementById("formulario");
+
+    if(tipo === "ordenado" || tipo === "credito"){
+        form.innerHTML = `
+            <input id="nome" placeholder="Nome completo">
+            <input id="mec" placeholder="Nº Mecânico">
+            <input id="bi" placeholder="Nº BI">
+            <input id="conta" placeholder="Nº Conta">
+
+            <select id="banco">
+                <option value="">Selecione o Banco</option>
+                <option>Banco A</option>
+                <option>Banco B</option>
+                <option>Banco C</option>
+                <option>Banco D</option>
+                <option>Banco E</option>
+            </select>
+        `;
+    }
+
+    if(tipo === "visto"){
+        form.innerHTML = `
+            <input id="nome" placeholder="Nome completo">
+            <input id="embaixada" placeholder="Nome da Embaixada">
+
+            <select id="familia" onchange="mostrarFamilia()">
+                <option value="nao">Vai com familiares?</option>
+                <option value="sim">Sim</option>
+                <option value="nao">Não</option>
+            </select>
+
+            <div id="familiares"></div>
+        `;
+    }
+
+   if(tipo === "passaporte"){
+    form.innerHTML = `
+        <select id="tipoPassaporte">
+            <option value="">Tipo de Passaporte</option>
+            <option value="emissao">Emissão</option>
+            <option value="reemissao">Reemissão</option>
+        </select>
+
+        <input id="nome" placeholder="Nome completo">
+        <input id="bi" placeholder="Nº BI">
+    `;
+}
+}
+
+function mostrarFamilia(){
+    const val = document.getElementById("familia").value;
+    const div = document.getElementById("familiares");
+
+    if(val === "sim"){
+        div.innerHTML = `
+            <input id="familia1" placeholder="Nome familiar 1">
+            <input id="familia2" placeholder="Nome familiar 2">
+        `;
+    } else {
+        div.innerHTML = "";
+    }
+}
+
+async function enviar(){
+    const user = JSON.parse(localStorage.getItem("user"));
+    const tipo = document.getElementById("tipo").value;
+
+    let dados = {
+        tipo,
+        userEmail: user.email
+    };
+
+    if(tipo === "ordenado" || tipo === "credito"){
+        dados.nome = document.getElementById("nome").value;
+        dados.mec = document.getElementById("mec").value;
+        dados.bi = document.getElementById("bi").value;
+        dados.conta = document.getElementById("conta").value;
+        dados.banco = document.getElementById("banco").value;
+    }
+
+    if(tipo === "visto"){
+        dados.nome = document.getElementById("nome").value;
+        dados.embaixada = document.getElementById("embaixada").value;
+        dados.familia = document.getElementById("familia").value;
+
+        if(dados.familia === "sim"){
+            dados.familiares = [
+                document.getElementById("familia1")?.value,
+                document.getElementById("familia2")?.value
+            ];
+        }
+    }
+
+    if(tipo === "passaporte"){
+        dados.nome = document.getElementById("nome").value;
+        dados.bi = document.getElementById("bi").value;
+        dados.tipoPassaporte = document.getElementById("tipoPassaporte").value;
+    }
+
+   await fetch("http://localhost:3000/pedidos", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(dados)
+});
+
+alert("Pedido enviado com sucesso!");
+
+// 🔥 LIMPAR FORMULÁRIO
+document.getElementById("tipo").value = "";
+document.getElementById("formulario").innerHTML = "";
+
+// 🔄 atualizar lista
+carregarPedidos();
+
+// 👉 opcional: ir direto para lista
+mostrarLista();
+}
+
+function logout(){
+    localStorage.removeItem("user");
+    window.location.href = "index.html";
+}
+
+async function carregarPedidos(){
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    const res = await fetch("http://localhost:3000/pedidos");
+    const data = await res.json();
+
+    const meus = data.filter(p => p.userEmail === user.email);
+
+  document.getElementById("meusPedidos").innerHTML = meus.map(p => `
+    <div style="margin:10px; padding:12px; background:#ffffff20; border-radius:8px; text-align:left;">
+
+        <b>Tipo:</b> ${p.tipo}<br>
+        <b>Status:</b> ${p.status}<br><br>
+
+        ${
+            p.status === "Aprovado"
+            ? `<a href="${p.documento}" target="_blank">📄 Ver Documento</a><br><br>`
+            : ""
+        }
+
+        ${
+            p.documentoAssinado
+            ? `
+                <div style="background:#00ff0020; padding:8px; border-radius:5px;">
+                    ✔ Documento Assinado Disponível<br><br>
+
+                    <a href="http://localhost:3000/uploads/${p.documentoAssinado}" target="_blank">
+                        👁️ Visualizar
+                    </a><br>
+
+                    <a href="http://localhost:3000/uploads/${p.documentoAssinado}" download>
+                        ⬇️ Baixar Documento
+                    </a>
+                </div>
+              `
+            : ""
+        }
+    </div>
+`).join("");
+
+
+}
+
+
+
+carregarPedidos();
+
+
+
+</script>
+
+</body>
+</html>

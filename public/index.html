@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de emissão de documentos</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+<header>
+    <div class="main">
+        <div class="logo">
+            <img src="logo.png">
+        </div>
+        </div>
+
+
+        <ul>
+            
+            <li><a href="servicos.html">Serviços</a></li>
+            <li><a href="apoio institucional.html">Apoio ao Cliente</a></li>
+            <li><a href="sobre nós.html">Sobre nós</a></li>
+        </ul>
+    </div>
+
+<div class="title">
+    <h1>G E D</h1>
+</div>
+
+ <div class="login-container">
+        <h2>Login</h2>
+
+    <form id="loginForm">
+    <div class="input-box">
+        <input type="email" id="email" placeholder="Email" required>
+    </div>
+
+    <div class="input-box">
+        <input type="password" id="senha" placeholder="Senha" required>
+    </div>
+
+    <button class="btn" type="submit">Entrar</button>
+</form>
+
+        <div class="switch">
+            Não tem conta? <a href="cadastro.html">Criar conta</a>
+        </div>
+    </div>
+
+
+
+
+</header>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+document.getElementById("loginForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const email = document.getElementById("email").value;
+    const senha = document.getElementById("senha").value;
+
+    const res = await fetch("http://localhost:3000/login", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ email, senha })
+    });
+
+    const data = await res.json();
+
+    if(res.ok){
+        localStorage.setItem("user", JSON.stringify(data.user));
+
+        if(data.user.role === "staff"){
+            window.location.href = "rh.html";
+        } else {
+            window.location.href = "user.html";
+        }
+    } else {
+        alert(data.message);
+    }
+});
+</script>
+
+</body>
+
+
+
+</html>
