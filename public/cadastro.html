@@ -47,6 +47,10 @@
 </header>
 
 <script>
+
+/* 🔥 ALTERADO: criado BASE_URL (igual aos outros ficheiros) */
+const BASE_URL = "https://ged-mbs1.onrender.com";
+
 document.getElementById("cadastroForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -54,19 +58,27 @@ document.getElementById("cadastroForm").addEventListener("submit", async (e) => 
     const email = document.getElementById("email").value;
     const senha = document.getElementById("senha").value;
 
-    const res = await fetch("http://localhost:3000/register", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ nome, email, senha })
-    });
+    try { /* 🔥 ALTERADO: adicionado try/catch */
+        
+        /* 🔥 ALTERADO: removido localhost */
+        const res = await fetch(BASE_URL + "/register", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ nome, email, senha })
+        });
 
-    const data = await res.json();
+        const data = await res.json();
 
-    if(res.ok){
-        alert("Conta criada!");
-        window.location.href = "index.html";
-    } else {
-        alert(data.message);
+        if(res.ok){
+            alert("Conta criada com sucesso!"); /* 🔥 ALTERADO: mensagem melhor */
+            window.location.href = "index.html";
+        } else {
+            alert(data.message || "Erro ao cadastrar"); /* 🔥 ALTERADO */
+        }
+
+    } catch (err) {
+        alert("Erro ao conectar com o servidor (Render pode estar a dormir)"); /* 🔥 ALTERADO */
+        console.error(err);
     }
 });
 </script>
