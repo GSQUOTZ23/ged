@@ -47,6 +47,9 @@ input{width:100%;padding:10px;margin-top:10px;border-radius:5px;border:none;}
 
 <script>
 
+/* 🔥 ALTERADO: BASE_URL para usar Render (não localhost) */
+const BASE_URL = "https://ged-mbs1.onrender.com";
+
 // 🔐 PROTEÇÃO
 const user = JSON.parse(localStorage.getItem("user"));
 
@@ -66,7 +69,8 @@ let selecionadoId = null;
 // 📥 CARREGAR PEDIDOS
 async function carregar(){
     try{
-        const res = await fetch("http://localhost:3000/pedidos");
+        /* 🔥 ALTERADO: localhost → BASE_URL */
+        const res = await fetch(BASE_URL + "/pedidos");
         const data = await res.json();
 
         pedidosGlobal = data;
@@ -79,12 +83,16 @@ async function carregar(){
             </div>
         `).join("");
 
+        resumo(data); /* 🔥 ALTERADO: movido para dentro do try */
+
     } catch(err){
         alert("Erro ao carregar pedidos");
         console.error(err);
     }
+}
 
-    function resumo(pedidos){
+/* 🔥 ALTERADO: função resumo separada (fora do carregar) */
+function resumo(pedidos){
     const hoje = new Date();
 
     let dia = 0;
@@ -93,7 +101,6 @@ async function carregar(){
 
     pedidos.forEach(p => {
         const data = new Date(p.createdAt);
-
         const diffDias = (hoje - data) / (1000 * 60 * 60 * 24);
 
         if(diffDias <= 1) dia++;
@@ -107,8 +114,6 @@ async function carregar(){
         <p>Semana: ${semana}</p>
         <p>Mês: ${mes}</p>
     `;
-}
-resumo(data);
 }
 
 // 👁️ VER DETALHE
@@ -147,12 +152,12 @@ function ver(id){
         <p>Status: ${p.status}</p>
 
         <label>Assinatura:</label>
-<select id="assinante">
-    <option value="">Selecionar</option>
-    <option value="Director">Director</option>
-    <option value="Chefe Divisão A">Chefe Divisão A</option>
-    <option value="Chefe Divisão B">Chefe Divisão B</option>
-</select>
+        <select id="assinante">
+            <option value="">Selecionar</option>
+            <option value="Director">Director</option>
+            <option value="Chefe Divisão A">Chefe Divisão A</option>
+            <option value="Chefe Divisão B">Chefe Divisão B</option>
+        </select>
 
         <button class="btn" onclick="aprovar(${p.id})">Aprovar</button>
         <button class="btn" onclick="update(${p.id}, 'Rejeitado')">Rejeitar</button>
@@ -164,7 +169,8 @@ function ver(id){
 // 🔄 ATUALIZAR STATUS
 async function update(id, status){
     try{
-        await fetch("http://localhost:3000/pedido/" + id, {
+        /* 🔥 ALTERADO: localhost → BASE_URL */
+        await fetch(BASE_URL + "/pedido/" + id, {
             method:"PUT",
             headers:{"Content-Type":"application/json"},
             body:JSON.stringify({ status })
@@ -178,32 +184,38 @@ async function update(id, status){
     }
 }
 
-// INICIAR
-carregar();
-
+// 🔥 APROVAR
 async function aprovar(id){
     const salario = document.getElementById("salario").value;
     const salarioExtenso = document.getElementById("salarioExtenso").value;
     const assinante = document.getElementById("assinante").value;
 
-if(!salario || !salarioExtenso || !assinante){
-    alert("Preencha todos os campos e selecione o assinante");
-    return;
-}
+    if(!salario || !salarioExtenso || !assinante){
+        alert("Preencha todos os campos e selecione o assinante");
+        return;
+    }
 
-    // Atualiza status
-    await fetch("http://localhost:3000/pedido/" + id, {
+    /* 🔥 ALTERADO: localhost → BASE_URL */
+    await fetch(BASE_URL + "/pedido/" + id, {
         method:"PUT",
         headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({ status: "Aprovado", salario, salarioExtenso, assinante })
+        body:JSON.stringify({
+            status: "Aprovado",
+            salario,
+            salarioExtenso,
+            assinante
+        })
     });
 
-    // Abre documento preenchido
-    const url = `http://localhost:3000/gerar-doc/${id}?salario=${salario}&extenso=${salarioExtenso}&assinante=${assinante}`;
-window.location.href = url;
+    /* 🔥 ALTERADO: URL dinâmica */
+    const url = `${BASE_URL}/gerar-doc/${id}?salario=${salario}&extenso=${salarioExtenso}&assinante=${assinante}`;
+    window.location.href = url;
 
     carregar();
 }
+
+// INICIAR
+carregar();
 
 </script>
 
