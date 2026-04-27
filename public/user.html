@@ -158,6 +158,7 @@ input:focus, select:focus {
 </header>
 
 <script>
+    const BASE_URL = "https://ged-mbs1.onrender.com";
     const user = JSON.parse(localStorage.getItem("user"));
 
 if(!user){
@@ -277,7 +278,7 @@ async function enviar(){
         dados.tipoPassaporte = document.getElementById("tipoPassaporte").value;
     }
 
-   await fetch("http://localhost:3000/pedidos", {
+   await fetch(BASE_URL + "/pedidos", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify(dados)
@@ -304,45 +305,41 @@ function logout(){
 async function carregarPedidos(){
     const user = JSON.parse(localStorage.getItem("user"));
 
-    const res = await fetch("http://localhost:3000/pedidos");
+    const res = await fetch(BASE_URL + "/pedidos");
     const data = await res.json();
 
     const meus = data.filter(p => p.userEmail === user.email);
 
-  document.getElementById("meusPedidos").innerHTML = meus.map(p => `
-    <div style="margin:10px; padding:12px; background:#ffffff20; border-radius:8px; text-align:left;">
+    document.getElementById("meusPedidos").innerHTML = meus.map(p => `
+        <div style="margin:10px; padding:12px; background:#ffffff20; border-radius:8px;">
 
-        <b>Tipo:</b> ${p.tipo}<br>
-        <b>Status:</b> ${p.status}<br><br>
+            <b>Tipo:</b> ${p.tipo}<br>
+            <b>Status:</b> ${p.status}<br><br>
 
-        ${
-            p.status === "Aprovado"
-            ? `<a href="${p.documento}" target="_blank">📄 Ver Documento</a><br><br>`
-            : ""
-        }
+            ${
+                p.status === "Aprovado"
+                ? `<a href="${p.documento}" target="_blank">📄 Ver Documento</a><br><br>`
+                : ""
+            }
 
-        ${
-            p.documentoAssinado
-            ? `
-                <div style="background:#00ff0020; padding:8px; border-radius:5px;">
-                    ✔ Documento Assinado Disponível<br><br>
-
-                    <a href="http://localhost:3000/uploads/${p.documentoAssinado}" target="_blank">
-                        👁️ Visualizar
+            ${
+                p.documentoAssinado
+                ? `
+                    <a href="${BASE_URL}/uploads/${p.documentoAssinado}" target="_blank">
+                        👁️ Ver
                     </a><br>
 
-                    <a href="http://localhost:3000/uploads/${p.documentoAssinado}" download>
-                        ⬇️ Baixar Documento
+                    <a href="${BASE_URL}/uploads/${p.documentoAssinado}" download>
+                        ⬇️ Baixar
                     </a>
-                </div>
-              `
-            : ""
-        }
-    </div>
-`).join("");
-
-
+                  `
+                : ""
+            }
+        </div>
+    `).join("");
 }
+
+
 
 
 
