@@ -17,12 +17,7 @@
         </div>
 
 
-        <ul>
-            
-            <li><a href="servicos.html">Serviços</a></li>
-            <li><a href="apoio institucional.html">Apoio ao Cliente</a></li>
-            <li><a href="sobre nós.html">Sobre nós</a></li>
-        </ul>
+  
     </div>
 
 <div class="title">
@@ -67,32 +62,40 @@
 
 
 <script>
+    const BASE_URL = "https://ged-mbs1.onrender.com";
 document.getElementById("loginForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const email = document.getElementById("email").value;
     const senha = document.getElementById("senha").value;
+    
+  try { 
+        const res = await fetch(BASE_URL + "/login", { /* 🔥 ALTERADO: removido URL fixa */
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ email, senha })
+        });
 
-    const res = await fetch("https://ged-mbs1.onrender.com/login", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ email, senha })
-    });
+        const data = await res.json();
 
-    const data = await res.json();
+        if(res.ok){
+            localStorage.setItem("user", JSON.stringify(data.user));
 
-    if(res.ok){
-        localStorage.setItem("user", JSON.stringify(data.user));
-
-        if(data.user.role === "staff"){
-            window.location.href = "rh.html";
+            if(data.user.role === "staff"){
+                window.location.href = "rh.html";
+            } else {
+                window.location.href = "user.html";
+            }
         } else {
-            window.location.href = "user.html";
+            alert(data.message || "Erro no login"); /* 🔥 ALTERADO: fallback */
         }
-    } else {
-        alert(data.message);
+
+    } catch (err) {
+        alert("Erro ao conectar com o servidor (Render pode estar a dormir)"); /* 🔥 ALTERADO */
+        console.error(err);
     }
 });
+</script>
 </script>
 
 </body>
